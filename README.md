@@ -4,12 +4,6 @@ A rule-based medical-symptom expert system, built as an educational demo
 (see `PRD.md` — not included here, but this implements it). Not a diagnostic
 tool. Every result names the exact rule that produced it.
 
-**Team**
-- Debanga Guria — BWU/BTA/24/280
-- Dibyendu Khanra — BWU/BTA/24/242
-- Suvam Patra — BWU/BTA/24/248
-- Rikan Sekh — BWU/BTA/24/297
-
 ```
 medexpert/
 ├── backend/     FastAPI + a small forward-chaining rule engine
