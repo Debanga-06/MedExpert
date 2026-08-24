@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MedExpert — Reasoning Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <button class="brand" data-nav="home" aria-label="MedExpert home">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-text">MED<span class="accent">EXPERT</span></span>
+  </button>
+
+  <nav class="pagenav" aria-label="Primary">
+    <button data-nav="home" class="nav-link is-active" data-i18n="nav_home">Home</button>
+    <button data-nav="assess" class="nav-link" data-i18n="nav_assess">Assessment</button>
+    <button data-nav="how" class="nav-link" data-i18n="nav_how">How it works</button>
+    <button data-nav="about" class="nav-link" data-i18n="nav_about">About</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="lang-switch" id="lang-switch" role="group" aria-label="Language">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="hi">हिंदी</button>
+      <button class="lang-btn" data-lang="bn">বাংলা</button>
+    </div>
+    <div class="engine-status" title="Inference engine status">
+      <span class="engine-dot" id="engine-dot"></span>
+      <span class="engine-label" id="engine-label">engine idle</span>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HOME ============ -->
+  <section class="page is-active" id="page-home" data-page="home">
+    <div class="hero">
+      <p class="eyebrow" id="home-eyebrow">RULE-BASED EXPERT SYSTEM · EDUCATIONAL DEMO</p>
+      <h1 class="hero-title" id="hero-title">
+        A machine that shows<br class="br-desktop" />
+        its <span class="accent-grad">reasoning</span>.
+      </h1>
+      <p class="hero-sub" id="hero-sub">
+        MedExpert turns selected symptoms into facts, weighs them against a transparent
+        knowledge base of IF&#8209;THEN rules, and ranks possible conditions —
+        explaining exactly which rule fired and why. No black box. No confirmed diagnosis.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" data-nav="assess">
+          <span id="btn-begin-text">Begin assessment</span> <span class="btn-arrow">→</span>
+        </button>
+        <button class="btn btn-ghost" data-nav="how" id="btn-how">See how it reasons</button>
+      </div>
+    </div>
+
+    <div class="stat-row" id="stat-row">
+      <div class="stat-chip">
+        <span class="stat-num" id="stat-symptoms">—</span>
+        <span class="stat-label" id="stat-symptoms-label">symptom facts</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-num">11</span>
+        <span class="stat-label" id="stat-conditions-label">conditions modeled</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-num">0</span>
+        <span class="stat-label" id="stat-ml-label">machine learning used</span>
+      </div>
+    </div>
+
+    <div class="scroll-cue" aria-hidden="true">
+      <span></span><span id="scroll-cue-text">reasoning core online</span>
+    </div>
+  </section>
+
+  <!-- ============ ASSESSMENT ============ -->
+  <section class="page" id="page-assess" data-page="assess">
+    <div class="page-head">
+      <p class="eyebrow" id="assess-eyebrow">STEP 01 · SELECT SYMPTOMS</p>
+      <h2 id="assess-title">Feed the knowledge base its facts.</h2>
+      <p class="page-sub" id="assess-sub">Choose everything that applies. Each selection becomes a fact the inference engine evaluates against every rule.</p>
+    </div>
+
+    <div class="assess-toolbar glass">
+      <input type="text" id="symptom-search" placeholder="Search symptoms — e.g. cough, fatigue, thirst…" autocomplete="off" />
+      <div class="chip-filters" id="category-filters" role="group" aria-label="Filter by category"></div>
+    </div>
+
+    <div id="symptom-groups" class="symptom-groups"></div>
+
+    <div class="assess-empty" id="symptom-empty" hidden>
+      <p id="symptom-empty-text">No symptoms match your search.</p>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS ============ -->
+  <section class="page" id="page-results" data-page="results">
+    <div class="page-head">
+      <p class="eyebrow" id="results-eyebrow">STEP 02 · INFERENCE OUTPUT</p>
+      <h2 id="results-heading">Reading the rule matches.</h2>
+      <p class="page-sub" id="results-sub">Ranked by rule-match score — a measure of overlap with the knowledge base, not a medical probability.</p>
+    </div>
+
+    <div id="warning-stack" class="warning-stack"></div>
+    <div id="results-list" class="results-list"></div>
+
+    <div class="results-actions">
+      <button class="btn btn-ghost" data-nav="assess" id="btn-adjust">← Adjust symptoms</button>
+      <button class="btn btn-primary" id="btn-restart">Start new assessment</button>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="page" id="page-how" data-page="how">
+    <div class="page-head">
+      <p class="eyebrow" id="how-eyebrow">METHODOLOGY</p>
+      <h2 id="how-title">Facts in. Explanation out.</h2>
+      <p class="page-sub" id="how-sub">Five deterministic stages — no training data, no hidden weights beyond what's listed here.</p>
+    </div>
+
+    <div class="pipeline" id="pipeline">
+      <div class="pipe-node">
+        <span class="pipe-index">01</span>
+        <h3 id="pipe-1-title">Symptoms</h3>
+        <p id="pipe-1-body">You select what you're experiencing from a fixed, defined list — nothing free-text, nothing ambiguous.</p>
+      </div>
+      <div class="pipe-node">
+        <span class="pipe-index">02</span>
+        <h3 id="pipe-2-title">Facts</h3>
+        <p id="pipe-2-body">Each selection is converted into a discrete fact — <code>fever = true</code> — that the engine can reason over.</p>
+      </div>
+      <div class="pipe-node">
+        <span class="pipe-index">03</span>
+        <h3 id="pipe-3-title">Knowledge base</h3>
+        <p id="pipe-3-body">Every disease is a hand-written rule: required "core" symptoms, optional supporting symptoms, and a weight.</p>
+      </div>
+      <div class="pipe-node">
+        <span class="pipe-index">04</span>
+        <h3 id="pipe-4-title">Forward-chaining engine</h3>
+        <p id="pipe-4-body">Facts are matched against every rule. A rule "fires" the moment at least one of its core facts is present.</p>
+      </div>
+      <div class="pipe-node">
+        <span class="pipe-index">05</span>
+        <h3 id="pipe-5-title">Ranked, explained result</h3>
+        <p id="pipe-5-body">Matched weight ÷ maximum weight = rule-match score. Every result names the exact rule that produced it.</p>
+      </div>
+    </div>
+
+    <div class="example-rule glass">
+      <p class="example-label" id="example-rule-label">Example rule</p>
+      <pre class="mono">Rule R001 · Influenza
+IF   fever AND cough AND fatigue         (core)
+AND  body_pain, chills, headache …        (supporting)
+THEN possible_disease = Influenza
+     score = matched_weight / max_weight × 100</pre>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="page" id="page-about" data-page="about">
+    <div class="page-head">
+      <p class="eyebrow" id="about-eyebrow">ABOUT THIS PROJECT</p>
+      <h2 id="about-title">An expert system, built to be inspected.</h2>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card glass">
+        <h3 id="about1-title">Objective</h3>
+        <p id="about1-body">Demonstrate a traditional rule-based AI expert system — knowledge representation, forward-chaining inference, and explainable output — as a learning project, not a clinical tool.</p>
+      </div>
+      <div class="about-card glass">
+        <h3 id="about2-title">Stack</h3>
+        <ul class="mono" id="about2-list">
+          <li>Frontend — HTML / CSS / JS, WebGL via three.js</li>
+          <li>Backend — Python, FastAPI, Pydantic</li>
+          <li>Reasoning — custom forward-chaining rule engine</li>
+          <li>Interface — REST API + CLI</li>
+        </ul>
+      </div>
+      <div class="about-card glass">
+        <h3 id="about3-title">What this is not</h3>
+        <p id="about3-body">Not a diagnostic tool, not trained on patient data, not reviewed by a clinician, and not a replacement for professional medical advice at any point in the flow.</p>
+      </div>
+    </div>
+
+    <div class="about-card glass team-card">
+      <h3 id="team-title">Team</h3>
+      <ul class="team-list">
+        <li><span class="team-name">Debanga Guria</span><span class="team-code">BWU/BTA/24/280</span></li>
+        <li><span class="team-name">Dibyendu Khanra</span><span class="team-code">BWU/BTA/24/242</span></li>
+        <li><span class="team-name">Suvam Patra</span><span class="team-code">BWU/BTA/24/248</span></li>
+        <li><span class="team-name">Rikan Sekh</span><span class="team-code">BWU/BTA/24/297</span></li>
+      </ul>
+    </div>
+
+    <div class="disclaimer-block glass">
+      <h3 id="disclaimer-title">Medical disclaimer</h3>
+      <p id="disclaimer-body">MedExpert is an educational AI project. Results are generated using predefined rules and rule-match scores, and should never be treated as a medical diagnosis. Please consult a qualified healthcare professional for medical advice.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="disclaimer-bar">
+  <span class="disclaimer-dot" aria-hidden="true"></span>
+  <span id="footer-disclaimer-text">Educational demo only — not medical advice. Rule-match scores are not clinical probabilities.</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
