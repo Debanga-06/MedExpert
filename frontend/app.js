@@ -5,18 +5,11 @@ import {
   translateCareTips, translateSeekCare,
 } from "./i18n.js";
 
-/* ==========================================================================
-   Config
-   ========================================================================== */
-
 const CONFIG = {
-  // Point this at your running FastAPI backend (see backend/README).
-  API_BASE: "http://127.0.0.1:8000",
+
+  API_BASE: "https://medexpert-fpar.onrender.com",
 };
 
-// Mirrors backend/app/knowledge_base.py — used so the UI still renders and is
-// browsable even before the backend is reachable. The live list (and all
-// diagnosis logic) always comes from the API when it's available.
 const FALLBACK_SYMPTOMS = [
   ["fever", "Fever", "General"], ["chills", "Chills", "General"], ["fatigue", "Fatigue", "General"],
   ["body_pain", "Body pain", "General"], ["muscle_ache", "Muscle ache", "General"],
@@ -39,10 +32,6 @@ const FALLBACK_SYMPTOMS = [
 
 const CATEGORY_ORDER = ["General", "Respiratory", "Neurological", "Allergy", "Digestive", "Metabolic"];
 
-/* ==========================================================================
-   Reasoning-core WebGL scene
-   ========================================================================== */
-
 const Scene = (() => {
   const canvas = document.getElementById("bg-canvas");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -58,7 +47,7 @@ const Scene = (() => {
   const rig = new THREE.Group();
   scene.add(rig);
 
-  // ---- glow sprite texture, generated once on a canvas ----
+  // glow sprite texture, generated once on a canvas 
   function makeGlowTexture() {
     const size = 128;
     const c = document.createElement("canvas");
@@ -99,7 +88,7 @@ const Scene = (() => {
   const field = new THREE.Points(fieldGeo, fieldMat);
   rig.add(field);
 
-  // ---- reasoning core: wireframe icosahedron + node particles on its vertices ----
+  // reasoning core: wireframe icosahedron + node particles on its vertices
   const core = new THREE.Group();
   core.position.set(0, 0.3, 0);
   rig.add(core);
@@ -147,8 +136,8 @@ const Scene = (() => {
   });
 
   // engine energy state, animated toward a target
-  let energy = 0.15;     // 0 idle .. 1 thinking
-  let hue = 0;           // 0 cyan/violet, 1 amber(warn), 2 red(emergency)
+  let energy = 0.15;    
+  let hue = 0;       
   let targetEnergy = 0.15;
   let targetHue = 0;
 
@@ -202,10 +191,6 @@ const Scene = (() => {
   return { setEngineState };
 })();
 
-/* ==========================================================================
-   Small helpers
-   ========================================================================== */
-
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
@@ -231,10 +216,6 @@ function setEngineLabel(uiKey, mode) {
   Scene.setEngineState(mode === "live" ? "thinking" : mode === "warn" ? "warn" : mode === "danger" ? "danger" : "idle");
 }
 
-/* ==========================================================================
-   Navigation
-   ========================================================================== */
-
 const pages = $$(".page");
 const navButtons = $$("[data-nav]");
 
@@ -244,10 +225,6 @@ function navigateTo(name) {
   window.scrollTo({ top: 0 });
 }
 navButtons.forEach((btn) => btn.addEventListener("click", () => navigateTo(btn.dataset.nav)));
-
-/* ==========================================================================
-   Symptom data + assessment UI
-   ========================================================================== */
 
 function detectLang() {
   const saved = localStorage.getItem("medexpert_lang");
@@ -262,7 +239,7 @@ const State = {
   activeCategory: "All",
   searchTerm: "",
   lang: detectLang(),
-  lastResults: null,     // last /api/diagnose response, kept so language switches can re-render without refetching
+  lastResults: null,  
   engineKey: "engine_idle",
   engineMode: null,
 };
@@ -383,10 +360,6 @@ $("#symptom-search").addEventListener("input", (e) => {
   $("#btn-run-inference").addEventListener("click", runInference);
   updateSelectionBarTexts();
 })();
-
-/* ==========================================================================
-   Diagnosis
-   ========================================================================== */
 
 const symptomLabel = (id) => translateSymptom(id, State.lang, State.symptoms.find((s) => s.id === id)?.label ?? id);
 
@@ -538,10 +511,6 @@ $("#btn-restart").addEventListener("click", () => {
   navigateTo("assess");
 });
 
-/* ==========================================================================
-   i18n wiring — static copy across every page
-   ========================================================================== */
-
 const NAV_KEYS = { home: "nav_home", assess: "nav_assess", how: "nav_how", about: "nav_about" };
 
 function applyStaticTranslations(lang) {
@@ -622,10 +591,6 @@ function setLang(code) {
 }
 
 $$(".lang-btn").forEach((btn) => btn.addEventListener("click", () => setLang(btn.dataset.lang)));
-
-/* ==========================================================================
-   Boot
-   ========================================================================== */
 
 applyStaticTranslations(State.lang);
 setEngineLabel("engine_idle", null);
